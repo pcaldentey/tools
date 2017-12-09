@@ -4,6 +4,7 @@
 from ConfigParser import ConfigParser
 import commands
 import re,os
+import urllib2
 
 class Scan:
     def __init__(self, configFile):
@@ -12,7 +13,7 @@ class Scan:
     def getComputersFromConf(self):
         self.config = ConfigParser()
         self.config.read([self.configFile])
-        return [(self.config.get(each_section,'ip'), each_section,
+        return [(self.config.get(each_section,'ip'), self.config.get(each_section, 'mac'),
             self.config.get(each_section, 'maker')) for each_section in self.config.sections() ]
 
     def getConnectedComputers(self):
@@ -45,9 +46,14 @@ class Scan:
             for i in self.comps:
                 body = '%s %s %s %s\\n' % (body, i[0], i[1], i[2])
 
-            #print body
-            command = "echo \"%s\" | mail -s \"HERMEN scaner\" root" % (body.replace('(','').replace(')',''),)
+            command = "echo \"%s\" | mail -s \"ARP scanner\" root" % (body.replace('(','').replace(')',''),)
             os.system(command)
+
+            token = self.config.get('DEFAULT', 'telegramToken')
+            chatid = self.config.get('DEFAULT', 'telegramChatId')
+            message = "****ARP Scanner***%0A%0A " + body.replace("\\n", "%0A") 
+            url="https://api.telegram.org/bot%s/sendMessage?chat_id=%s&text=%s" %(token, chatid, message,)
+            content = urllib2.urlopen(url).read()
 
     def run(self):
         self.getUnknownConnectedComputers()
