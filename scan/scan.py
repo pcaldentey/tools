@@ -1,10 +1,10 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # -*- coding: UTF-8 -*-
 
 from ConfigParser import ConfigParser
 import commands
-import re
 import os
+import re
 import urllib2
 
 
@@ -53,7 +53,8 @@ class Scan:
 
             token = self.config.get('DEFAULT', 'telegramToken')
             chatid = self.config.get('DEFAULT', 'telegramChatId')
-            message = "****ARP Scanner***%0A%0A " + body.replace("\\n", "%0A")
+
+            message = "****ARP%20Scanner***%0A%0A" + body.replace("\\n", "%0A").replace(" ", "%20")
             url = "https://api.telegram.org/bot%s/sendMessage?chat_id=%s&text=%s" % (token, chatid, message,)
             urllib2.urlopen(url).read()
 
@@ -62,6 +63,6 @@ class Scan:
         self.notify()
 
 
-configfile = 'scan.ini'
+configfile = '/usr/local/sbin/scan.ini'
 scan = Scan(configfile)
 scan.run()
