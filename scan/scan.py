@@ -1,11 +1,11 @@
 #! /usr/bin/env python3
 # -*- coding: UTF-8 -*-
 
-from ConfigParser import ConfigParser
-import commands
-import os
+import configparser
 import re
-import urllib2
+import os
+
+from urllib.request import urlopen
 
 
 class Scan:
@@ -13,14 +13,20 @@ class Scan:
         self.configFile = configFile
 
     def getComputersFromConf(self):
-        self.config = ConfigParser()
+        self.config = configparser.ConfigParser()
         self.config.read([self.configFile])
         return [(self.config.get(each_section, 'ip'), self.config.get(each_section, 'mac'),
                 self.config.get(each_section, 'maker')) for each_section in self.config.sections()]
 
     def getConnectedComputers(self):
-        command = self.config.get('DEFAULT', 'arpCommand')
-        output = commands.getoutput(command).split('\n')
+
+        try:
+            command = self.config.get('DEFAULT', 'arpCommand')
+            os.system(command + ' > /tmp/scan.tmp')
+            output = open('/tmp/scan.tmp', 'r').read().splitlines()
+        except Exception as err:
+            raise Exception(err)
+
         comps = []
         for i in output:
             row = re.compile("(.+)\t(.+)\t(.+)", re.DOTALL)
@@ -56,7 +62,10 @@ class Scan:
 
             message = "****ARP%20Scanner***%0A%0A" + body.replace("\\n", "%0A").replace(" ", "%20")
             url = "https://api.telegram.org/bot%s/sendMessage?chat_id=%s&text=%s" % (token, chatid, message,)
-            urllib2.urlopen(url).read()
+            try:
+                urlopen(url).read()
+            except Exception as err:
+                raise Exception(err)
 
     def run(self):
         self.getUnknownConnectedComputers()
