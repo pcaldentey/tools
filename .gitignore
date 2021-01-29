@@ -99,3 +99,4 @@ ENV/
 
 # mypy
 .mypy_cache/
+scan/scan2.ini
